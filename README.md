@@ -3,7 +3,18 @@
 *Cloudy, with a chance of PIM:* your mail, contacts, calendars and tasks, raining down into
 Claude's context from one connector you host yourself.
 
-Sister project of [Chance of Files](https://github.com/tywrr/chance-of-files), built the same way:
+It was built mainly for **Claude Duet**: Duet runs on an ephemeral cloud computer that can't reach
+your home network, keep mail/DAV credentials, or run local CLI tools (like `himalaya`) and stdio
+MCP servers—and its outbound network only reaches HTTP/HTTPS allowlisted hosts, not IMAP or SMTP
+ports. Hosting a remote MCP connector behind an OAuth Worker bridges that gap, and works anywhere
+remote MCP over Streamable HTTP is supported: tested with Claude Duet, claude.ai, the Claude apps,
+and Claude Code, and compatible in principle (untested) with other MCP clients and ambient agents
+like ChatGPT / ChatGPT Dots, Gemini Tasks, Grok Bot, Cursor, VS Code, or Codex (local loopback
+clients work out of the box; hosted services need their callback URL added to
+`ALLOWED_REDIRECT_URIS` in `auth/`).
+
+Sister project to [Chance of Files](https://github.com/tywrr/chance-of-files) (pCloud files,
+drive audits, and expiring transfer links), built the same way:
 
 - **The core**, a Rust server (`chance-of-pim`) in a pod next to `cloudflared`. It speaks IMAP and
   SMTP for mail and CalDAV/CardDAV for calendars, tasks and contacts, to any number of accounts,
