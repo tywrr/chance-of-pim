@@ -108,6 +108,7 @@ for _ in $(seq 1 30); do mid=$(find_in INBOX "$tag hello"); [ -n "$mid" ] && bre
 [ -n "$mid" ] && ok "message delivered and found by search" || no "message delivered and found by search" "not in INBOX after 60 s"
 out=$($c read_email "$(jq -cn --arg i "$mid" '{id:$i}')"); expect "read_email" "café ✓" "$out"
 grep -q '<untrusted_content>' <<<"$out" && ok "body marked untrusted" || no "body marked untrusted" "$out"
+out=$($c read_attachment "$(jq -cn --arg i "$mid" '{id:$i,index:0}')"); grep -q 'has no attachments' <<<"$out" && ok "read_attachment says a plain message has none" || no "read_attachment on a plain message" "$out"
 [ -n "$(find_in "$sent" "$tag hello")" ] && ok "copy filed in $sent" || no "copy filed in $sent" ""
 out=$($c update_email_flags "$(jq -cn --arg i "$mid" '{ids:[$i],read:true,flagged:true}')"); expect "update_email_flags" "Updated 1" "$out"
 [ -n "$(find_in INBOX "$tag hello" '{"flagged_only":true}')" ] && ok "flag visible in search" || no "flag visible in search" ""

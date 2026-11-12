@@ -30,6 +30,16 @@ pub const SCOPE_CALENDAR_WRITE: &str = "calendar:write";
 const SCOPES_HEADER: &str = "x-cop-scopes";
 const VERSIONS: &[&str] = &["2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"];
 
+/// What a tool that can show pictures returns.
+pub enum Rich {
+    Text(String),
+    Image {
+        mime: &'static str,
+        data: Vec<u8>,
+        caption: String,
+    },
+}
+
 /// What a tool call returns: text for Claude, or an error message for Claude.
 pub type ToolResult = Result<String, String>;
 
@@ -330,6 +340,34 @@ async fn call(
             .and_then(Value::as_object)
             .unwrap_or(&empty),
     );
+    if name == "read_attachment" {
+        let read = tokio::time::timeout(
+            std::time::Duration::from_secs(150),
+            mailtools::read_attachment(state, &args),
+        )
+        .await;
+        return Ok(match read {
+            Ok(Ok(Rich::Text(text))) => tool_reply(Ok(text)),
+            Ok(Ok(Rich::Image {
+                mime,
+                data,
+                caption,
+            })) => {
+                use base64::Engine as _;
+                json!({
+                    "content": [
+                        { "type": "text", "text": caption },
+                        { "type": "image", "data": base64::engine::general_purpose::STANDARD.encode(data), "mimeType": mime },
+                    ],
+                    "isError": false,
+                })
+            }
+            Ok(Err(e)) => tool_reply(Err(e)),
+            Err(_) => tool_reply(Err(
+                "the mail server took too long to answer; try again".to_owned()
+            )),
+        });
+    }
     let work = async {
         if name == "pim_status" {
             return Ok(instructions(state, scopes));

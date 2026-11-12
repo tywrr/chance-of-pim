@@ -24,8 +24,8 @@ drive audits, and expiring transfer links), built the same way:
   and a Cloudflare Tunnel with no public hostname.
 
 **Status: 0.1, early.** It runs daily against Runbox and Stalwart for its author, with Claude
-and Claude Duet, but it is young: no local index yet (every call talks to the servers), no
-attachments, and only the two providers above are tested. Other IMAP/SMTP and CalDAV/CardDAV
+and Claude Duet, but it is young: no local index yet (every call talks to the servers),
+attachments can be read but not sent, and only the two providers above are tested. Other IMAP/SMTP and CalDAV/CardDAV
 servers should work; reports are welcome.
 
 Set it up: [docs/setup.md](docs/setup.md).
@@ -43,20 +43,37 @@ Text written by other people (message bodies, event and contact fields) is retur
 
 ## Tools
 
-`pim_status` · mail: `list_mailboxes`, `search_emails`, `read_email`, `create_draft`,
+`pim_status` · mail: `list_mailboxes`, `search_emails`, `read_email`, `read_attachment`,
+`create_draft`,
 `send_email`, `reply_email`, `update_email_flags`, `move_emails`, `trash_emails` · calendars and
 tasks: `list_calendars`, `list_events`, `list_tasks`, `get_item`, `create_event`, `update_event`,
 `create_task`, `update_task`, `delete_calendar_item`, `create_calendar`, `delete_calendar`,
 `move_calendar_item` · contacts: `search_contacts`,
 `create_contact`, `update_contact`, `delete_contact`.
 
+### Attachments
+
+`read_attachment` opens one attachment of a message in place:
+
+- **Pictures** (JPEG, PNG, GIF, WebP) come back as an image Claude can look at, turned upright
+  and scaled down to 1568 px on the long side when larger.
+- **Spreadsheets** (xlsx, xlsm, xls, xlsb, ods) come back as tab-separated rows per sheet. A
+  formula the sending program never calculated is shown as the formula, not as 0.
+- **PDFs** come back as text, page by page. A scan with no text layer comes back one page at a
+  time as a picture (when its pages are stored as JPEG, as most scanners do).
+- **Word documents** (.docx), **CSV and other text files** come back as text.
+
+Long text is paged with `offset`. Nothing is written anywhere; other formats (HEIC, archives,
+legacy .doc, slides) wait for download links.
+
 Configuration: [config.example.toml](config.example.toml). `[guide] text` there is added to the
 instructions Claude gets on connecting: say which calendar is for what, or any convention of yours.
 
 ## Roadmap
 
-- Attachments: read small ones inline, larger ones by expiring link (the Worker's `/dl` and `/ul`
-  routes are reserved for this); forward with attachments; a thread view.
+- Attachments by expiring link, for files too big or of a kind `read_attachment` can't open
+  (the Worker's `/dl` and `/ul` routes are reserved for this); sending and forwarding with
+  attachments; a thread view.
 - A local SQLite index with background sync, for fast search across accounts.
 - Calendar depth: time zone definitions on recurring events, single-occurrence edits,
   invitations, free/busy.

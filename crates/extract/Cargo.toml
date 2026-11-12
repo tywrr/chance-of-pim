@@ -1,0 +1,14 @@
+[package]
+name = "chance-of-pim-extract"
+description = "Turns mail attachments into something Claude can read: text from documents and spreadsheets, downscaled images"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+calamine.workspace = true
+image.workspace = true
+pdf-extract.workspace = true
+quick-xml.workspace = true
+zip.workspace = true

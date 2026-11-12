@@ -52,7 +52,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 namespace: chance-of-pim
 resources:
-  - https://github.com/tywrr/chance-of-pim//deploy/k8s/base?ref=v0.1.1
+  - https://github.com/tywrr/chance-of-pim//deploy/k8s/base?ref=v0.1.2
 configMapGenerator:
   - name: chance-of-pim-config
     behavior: replace

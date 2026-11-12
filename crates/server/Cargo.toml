@@ -13,6 +13,8 @@ path = "src/main.rs"
 [dependencies]
 chance-of-pim-mail.workspace = true
 chance-of-pim-dav.workspace = true
+chance-of-pim-extract.workspace = true
+base64.workspace = true
 axum.workspace = true
 chrono.workspace = true
 chrono-tz.workspace = true

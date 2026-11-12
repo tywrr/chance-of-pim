@@ -1,9 +1,9 @@
 [workspace]
 resolver = "3"
-members = ["crates/mail", "crates/dav", "crates/server"]
+members = ["crates/mail", "crates/dav", "crates/extract", "crates/server"]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/tywrr/chance-of-pim"
@@ -11,16 +11,21 @@ repository = "https://github.com/tywrr/chance-of-pim"
 [workspace.dependencies]
 chance-of-pim-mail = { path = "crates/mail" }
 chance-of-pim-dav = { path = "crates/dav" }
+chance-of-pim-extract = { path = "crates/extract" }
 
 async-imap = { version = "0.12.0", default-features = false, features = ["runtime-tokio"] }
 axum = { version = "0.8.9", default-features = false, features = ["http1", "tokio", "json"] }
 base64 = "0.23.1"
+calamine = { version = "0.38.0", features = ["dates"] }
 chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
 chrono-tz = "0.10"
+# Only the formats photos and screenshots come in; no rayon (one image per call).
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "gif", "webp"] }
 futures-util = { version = "0.3.34", default-features = false, features = ["std"] }
 # rustls with ring everywhere: no aws-lc (cmake) in the static musl build.
 lettre = { version = "0.11.23", default-features = false, features = ["builder", "smtp-transport", "tokio1", "tokio1-rustls", "ring", "webpki-roots", "hostname"] }
 mail-parser = "1.0.1"
+pdf-extract = "0.12.1"
 quick-xml = "0.42.0"
 reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider"] }
 rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
@@ -33,6 +38,8 @@ tokio-rustls = { version = "0.26.6", default-features = false, features = ["ring
 toml = "0.9"
 uuid = { version = "1", features = ["v4"] }
 webpki-roots = "1"
+# Reading .docx: deflate only, in pure Rust.
+zip = { version = "9.5.1", default-features = false, features = ["deflate-flate2-zlib-rs"] }
 
 [profile.release]
 codegen-units = 4

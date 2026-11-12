@@ -436,16 +436,21 @@ pub fn parse_full(uid: u32, flags: Vec<String>, raw: &[u8]) -> Result<Full> {
     })
 }
 
-/// One attachment's bytes, by its index in [`Full::attachments`].
-pub fn attachment(raw: &[u8], index: usize) -> Result<(Attachment, Vec<u8>)> {
+/// One attachment, by its index in [`Full::attachments`]: what it is, its bytes, and its text
+/// decoded from its charset when the part is text.
+pub fn attachment(raw: &[u8], index: usize) -> Result<(Attachment, Vec<u8>, Option<String>)> {
     let msg = MessageParser::new()
         .parse(raw)
         .ok_or_else(|| Error("the message could not be parsed".into()))?;
-    let part = msg
-        .attachments()
-        .nth(index)
-        .ok_or_else(|| Error(format!("the message has no attachment {index}")))?;
+    let count = msg.attachments().count();
+    let part = msg.attachments().nth(index).ok_or_else(|| {
+        Error(match count {
+            0 => "the message has no attachments".to_owned(),
+            n => format!("the message has no attachment {index}; it has {n}, numbered from 0"),
+        })
+    })?;
     let bytes = part.decoded().into_owned();
+    let text = part.text().map(|t| t.into_owned());
     Ok((
         Attachment {
             index,
@@ -454,6 +459,7 @@ pub fn attachment(raw: &[u8], index: usize) -> Result<(Attachment, Vec<u8>)> {
             size: bytes.len(),
         },
         bytes,
+        text,
     ))
 }
 
