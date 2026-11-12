@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: chance-of-pim
+  labels:
+    kubernetes.io/metadata.name: chance-of-pim
+    pod-security.kubernetes.io/enforce: restricted

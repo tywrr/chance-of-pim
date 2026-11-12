@@ -1,0 +1,17 @@
+[package]
+name = "chance-of-pim-mail"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+async-imap.workspace = true
+futures-util.workspace = true
+lettre.workspace = true
+mail-parser.workspace = true
+rustls.workspace = true
+thiserror.workspace = true
+tokio.workspace = true
+tokio-rustls.workspace = true
+webpki-roots.workspace = true

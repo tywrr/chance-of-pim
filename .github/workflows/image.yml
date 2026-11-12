@@ -1,0 +1,67 @@
+# Publishes ghcr.io/tywrr/chance-of-pim:<version> for amd64 and arm64 on every v* tag: static musl
+# binaries from cargo-zigbuild, packed by deploy/oci-image.py (as deploy/build-image.sh does
+# locally), pushed per architecture with skopeo and joined into one multi-arch tag.
+name: image
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/chance-of-pim
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { arch: amd64, target: x86_64-unknown-linux-musl }
+          - { arch: arm64, target: aarch64-unknown-linux-musl }
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.14.0
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild@0.24.0
+      - run: cargo zigbuild --release --locked --target ${{ matrix.target }} --bin chance-of-pim
+      - name: Pack and push
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(cargo metadata --format-version 1 --no-deps |
+            python3 -c 'import json,sys; print(next(p["version"] for p in json.load(sys.stdin)["packages"] if p["name"] == "chance-of-pim-server"))')
+          bin=target/${{ matrix.target }}/release/chance-of-pim
+          file "$bin" | tee /dev/stderr | grep -Eq 'statically linked|static-pie linked'
+          python3 deploy/oci-image.py "$bin" ${{ matrix.arch }} "$IMAGE:$version" "$RUNNER_TEMP/image.tar"
+          echo "$TOKEN" | skopeo login ghcr.io -u "${{ github.actor }}" --password-stdin
+          skopeo copy --dest-compress oci-archive:"$RUNNER_TEMP/image.tar" \
+            "docker://$IMAGE:$version-${{ matrix.arch }}"
+
+  manifest:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Join the architectures under one tag
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          echo "$TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker buildx imagetools create -t "$IMAGE:$version" \
+            "$IMAGE:$version-amd64" "$IMAGE:$version-arm64"
+          docker buildx imagetools inspect "$IMAGE:$version"

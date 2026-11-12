@@ -1,0 +1,21 @@
+# Nothing may connect to the pod. It may reach DNS, Cloudflare's edge (the tunnel), HTTPS
+# (CalDAV/CardDAV) and mail servers (IMAP 993, SMTP 465/587). An overlay adds what a DAV server
+# inside the cluster needs (for example a plain-HTTP service port).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: chance-of-pim
+spec:
+  podSelector: {}
+  policyTypes: [Ingress, Egress]
+  egress:
+    - ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    - ports:
+        - { protocol: TCP, port: 443 }
+        - { protocol: TCP, port: 7844 }
+        - { protocol: UDP, port: 7844 }
+        - { protocol: TCP, port: 993 }
+        - { protocol: TCP, port: 465 }
+        - { protocol: TCP, port: 587 }

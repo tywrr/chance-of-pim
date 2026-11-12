@@ -1,0 +1,4 @@
+# Replace this file in your overlay (configMapGenerator, behavior: replace) with your accounts.
+# See config.example.toml at the root of the repository.
+[server]
+listen = "127.0.0.1:8080"

@@ -1,0 +1,40 @@
+[workspace]
+resolver = "3"
+members = ["crates/mail", "crates/dav", "crates/server"]
+
+[workspace.package]
+version = "0.1.1"
+edition = "2024"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/tywrr/chance-of-pim"
+
+[workspace.dependencies]
+chance-of-pim-mail = { path = "crates/mail" }
+chance-of-pim-dav = { path = "crates/dav" }
+
+async-imap = { version = "0.12.0", default-features = false, features = ["runtime-tokio"] }
+axum = { version = "0.8.9", default-features = false, features = ["http1", "tokio", "json"] }
+base64 = "0.23.1"
+chrono = { version = "0.4", default-features = false, features = ["std", "clock"] }
+chrono-tz = "0.10"
+futures-util = { version = "0.3.34", default-features = false, features = ["std"] }
+# rustls with ring everywhere: no aws-lc (cmake) in the static musl build.
+lettre = { version = "0.11.23", default-features = false, features = ["builder", "smtp-transport", "tokio1", "tokio1-rustls", "ring", "webpki-roots", "hostname"] }
+mail-parser = "1.0.1"
+quick-xml = "0.42.0"
+reqwest = { version = "0.13.5", default-features = false, features = ["rustls-no-provider"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.149"
+subtle = "2.6.1"
+thiserror = "2"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "net", "time", "io-util", "sync", "signal"] }
+tokio-rustls = { version = "0.26.6", default-features = false, features = ["ring", "tls12"] }
+toml = "0.9"
+uuid = { version = "1", features = ["v4"] }
+webpki-roots = "1"
+
+[profile.release]
+codegen-units = 4
+lto = "thin"
+strip = true

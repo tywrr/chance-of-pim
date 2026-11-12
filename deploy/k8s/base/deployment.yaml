@@ -1,0 +1,63 @@
+# One pod: the core on loopback and cloudflared beside it. Nothing listens on the node or the
+# cluster network; the auth Worker reaches the core through the tunnel.
+# Secret chance-of-pim: internal-token, tunnel-token. Secret chance-of-pim-accounts: one key per
+# password_env named in config.toml (deploy/k8s/apply.sh makes both).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chance-of-pim
+  labels: { app.kubernetes.io/name: chance-of-pim }
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels: { app.kubernetes.io/name: chance-of-pim }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: chance-of-pim }
+    spec:
+      automountServiceAccountToken: false
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: core
+          image: ghcr.io/tywrr/chance-of-pim
+          imagePullPolicy: IfNotPresent
+          env:
+            - { name: CHANCE_OF_PIM_CONFIG, value: /etc/chance-of-pim/config.toml }
+            - name: INTERNAL_TOKEN
+              valueFrom: { secretKeyRef: { name: chance-of-pim, key: internal-token } }
+          envFrom:
+            - secretRef: { name: chance-of-pim-accounts }
+          volumeMounts:
+            - { name: config, mountPath: /etc/chance-of-pim, readOnly: true }
+            - { name: core-tmp, mountPath: /tmp }
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: "1", memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+        - name: cloudflared
+          image: cloudflare/cloudflared:2026.10.2
+          args: [tunnel, --no-autoupdate, --protocol, quic, --metrics, 127.0.0.1:20241, run]
+          env:
+            - name: TUNNEL_TOKEN
+              valueFrom: { secretKeyRef: { name: chance-of-pim, key: tunnel-token } }
+          resources:
+            requests: { cpu: 10m, memory: 32Mi }
+            limits: { memory: 256Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+      volumes:
+        - name: config
+          configMap: { name: chance-of-pim-config }
+        - name: core-tmp
+          emptyDir: { sizeLimit: 64Mi }

@@ -1,0 +1,73 @@
+# chance-of-pim configuration. The server reads --config, else $CHANCE_OF_PIM_CONFIG, else
+# /etc/chance-of-pim/config.toml.
+#
+# Secrets never go in this file. INTERNAL_TOKEN (the bearer token the auth Worker sends) and one
+# variable per `password_env` below come from the environment. Use app passwords, not account
+# passwords.
+
+[server]
+listen = "127.0.0.1:8080"
+# Times without a zone are read and shown in this IANA zone.
+default_timezone = "America/Los_Angeles"
+# Browser origins allowed in an Origin header. Requests without one are always allowed.
+allowed_origins = ["https://claude.ai", "https://claude.com"]
+
+[mail.policy]
+# Addresses ("ann@example.com") or domains ("@example.com") mail may be sent to.
+# Empty: anywhere.
+send_to = []
+
+# Any number of mail accounts. Ids appear in message ids (`work:INBOX:1234`), so keep them short
+# and without colons.
+[[mail.accounts]]
+id = "main"
+label = "Main mailbox"
+default = true
+# Identities this account may send as; the first is the default.
+from = ["Ann Example <ann@example.com>"]
+# Trash, Drafts and Sent are found from the server's SPECIAL-USE flags or common names.
+# Set these only to override:
+# trash_mailbox = "Trash"
+# drafts_mailbox = "Drafts"
+# sent_mailbox = "Sent"
+# Save a copy to Sent after sending (default true; turn off if your server does it itself).
+append_to_sent = true
+[mail.accounts.imap]
+host = "mail.example.com"
+port = 993            # implicit TLS
+user = "ann@example.com"
+password_env = "MAIL_MAIN_PASSWORD"
+[mail.accounts.smtp]
+host = "mail.example.com"
+port = 465            # 465: implicit TLS; any other port: STARTTLS
+user = "ann@example.com"
+password_env = "MAIL_MAIN_PASSWORD"
+
+# CardDAV. `url` is any URL on the server: its root, a .well-known path or the home collection;
+# the address books are discovered from it.
+[[contacts.accounts]]
+id = "main"
+label = "Contacts"
+default = true
+url = "https://dav.example.com/"
+user = "ann@example.com"
+password_env = "DAV_MAIN_PASSWORD"
+# Collection names or path segments that may be read but never changed.
+protected = []
+
+# CalDAV: calendars and task lists (tasks are VTODO items in calendars that accept them).
+[[calendars.accounts]]
+id = "main"
+label = "Calendars and tasks"
+default = true
+url = "https://dav.example.com/"
+user = "ann@example.com"
+password_env = "DAV_MAIN_PASSWORD"
+protected = []
+
+# Your own notes for Claude, added to the connector's instructions (first 8,000 characters):
+# what each calendar, task list or folder is for, and conventions to follow.
+# [guide]
+# text = """
+# Tasks with no date go in the Someday list. Work mail is filed under Work/<client>.
+# """

@@ -1,0 +1,25 @@
+[package]
+name = "chance-of-pim-server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "chance-of-pim"
+path = "src/main.rs"
+
+[dependencies]
+chance-of-pim-mail.workspace = true
+chance-of-pim-dav.workspace = true
+axum.workspace = true
+chrono.workspace = true
+chrono-tz.workspace = true
+uuid.workspace = true
+rustls.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+subtle.workspace = true
+tokio.workspace = true
+toml.workspace = true

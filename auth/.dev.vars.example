@@ -1,0 +1,12 @@
+# Copy to .dev.vars for `npm run dev`. Local values only; production secrets are set with
+# `npx wrangler secret put INTERNAL_TOKEN`, `... OWNER_PASSPHRASE` and `... LINK_KEY`.
+INTERNAL_TOKEN=dev-internal-token
+OWNER_PASSPHRASE=dev-passphrase
+# The HMAC key of /dl and /ul links (32+ characters); the same value as the local core's LINK_KEY.
+LINK_KEY=dev-link-key-0123456789abcdef0123456789
+# Vars from wrangler.jsonc can be overridden here too. The default DCR_ALLOWED_CIDRS already lets
+# loopback register clients, which is where local requests come from.
+# DCR_ALLOWED_CIDRS=*
+# The core on this computer (crates/server, listening on 127.0.0.1:8080), instead of the CORE VPC
+# binding, which only works remotely. Loopback origins only.
+# CORE_URL=http://127.0.0.1:8080

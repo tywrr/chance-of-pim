@@ -1,0 +1,13 @@
+[package]
+name = "chance-of-pim-dav"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+quick-xml.workspace = true
+reqwest.workspace = true
+thiserror.workspace = true
+rustls.workspace = true
+webpki-roots.workspace = true
